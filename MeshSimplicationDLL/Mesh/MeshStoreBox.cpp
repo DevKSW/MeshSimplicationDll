@@ -1,7 +1,18 @@
 #include "pch.h"
-#include "MeshStroreBox.h"
+#include "MeshStoreBox.h"
 
 using namespace DirectX;
+
+void::MeshStoreBox::AddVertex(const QEMVertex& vertex)
+{
+    this->vertices.push_back(vertex);
+}
+
+void::MeshStoreBox::AddFace(const QEMFace& face)
+{
+    this->faces.push_back(face);
+}
+
 
 void MeshStoreBox::BuildAdjacency()
 {

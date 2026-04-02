@@ -1,8 +1,13 @@
 #include "pch.h"
 #include "ModelParser.h"
+#include "../Mesh/MeshStoreBox.h"
 
-void ModelParser::LoadModel(std::string& path)
+MeshStoreBox* ModelParser::LoadModel(std::string& path)
 {	   
+    MeshStoreBox* meshStoreBox = new MeshStoreBox();
+
+    try
+    {
     const aiScene* scene = this->importer.ReadFile(path,
         aiProcess_Triangulate |           // 모든 면을 삼각형으로 변환
         aiProcess_FlipUVs |               // DirectX/OpenGL 좌표계 차이 해결
@@ -12,7 +17,7 @@ void ModelParser::LoadModel(std::string& path)
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::string errorStr = importer.GetErrorString();
-        return;
+        throw std::exception(errorStr.c_str()); // 모델 실패 , 메쉬 미존재 시 Throw
     }
 
     // 메시 순회
@@ -23,7 +28,7 @@ void ModelParser::LoadModel(std::string& path)
         for (unsigned int j = 0; j < mesh->mNumVertices; j++) {
             aiVector3D pos = mesh->mVertices[j];
             // 여기서 정점을 구조체에 저장
-            
+            meshStoreBox
         }
 
         // Exctract face(index) data
@@ -34,7 +39,14 @@ void ModelParser::LoadModel(std::string& path)
                 // 삼각형 인덱스 저장
             }
         }
+    }    
+
     }
+    catch (const std::exception& e)
+    {        
+        std::cerr << "Error: " << e.what() << std::endl;        
+        delete meshStoreBox;
+    }    
 
-
+    return meshStoreBox;
 }

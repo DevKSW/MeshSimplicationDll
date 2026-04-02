@@ -5,10 +5,14 @@
 /// 파싱된 메시 데이터를 보관하고 QEM에 필요한 자료구조를 제공
 class MeshStoreBox
 {
-public:
+private:
     std::vector<QEMVertex> vertices;
     std::vector<QEMFace>   faces;
 
+public:
+    void AddVertex(const QEMVertex& vertex);
+    void AddFace(const QEMFace& face);  
+    
     /// 파싱된 정점/면 데이터로부터 인접 정보와 평면 방정식을 구축
     void BuildAdjacency();
 
