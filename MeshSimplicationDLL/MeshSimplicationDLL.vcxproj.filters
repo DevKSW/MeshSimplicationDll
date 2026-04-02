@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="소스 파일">
@@ -13,42 +13,63 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\Core">
+      <UniqueIdentifier>{A1B2C3D4-1111-4000-A000-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Parser">
+      <UniqueIdentifier>{A1B2C3D4-2222-4000-A000-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Mesh">
+      <UniqueIdentifier>{A1B2C3D4-3333-4000-A000-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Core">
+      <UniqueIdentifier>{A1B2C3D4-4444-4000-A000-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Parser">
+      <UniqueIdentifier>{A1B2C3D4-5555-4000-A000-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Mesh">
+      <UniqueIdentifier>{A1B2C3D4-6666-4000-A000-000000000006}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Core\framework.h">
+      <Filter>헤더 파일\Core</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ModelParser.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Parser\ModelParser.h">
+      <Filter>헤더 파일\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="MeshSimplicator.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Parser\Assimps.h">
+      <Filter>헤더 파일\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="MeshStroreBox.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Mesh\MeshSimplicator.h">
+      <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Assimps.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="Mesh\MeshStroreBox.h">
+      <Filter>헤더 파일\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\CustomStructures.h">
+      <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="Core\dllmain.cpp">
+      <Filter>소스 파일\Core</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ModelParser.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="Parser\ModelParser.cpp">
+      <Filter>소스 파일\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="MeshSimplicator.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="Mesh\MeshSimplicator.cpp">
+      <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="MeshStroreBox.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="Mesh\MeshStroreBox.cpp">
+      <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
