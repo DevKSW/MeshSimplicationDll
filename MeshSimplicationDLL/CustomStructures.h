@@ -1,9 +1,13 @@
-#pragma once
+﻿#pragma once
 #include <DirectXMath.h>
 #include <vector>
-#include <cstdint>
 #include <unordered_set>
 
+#ifndef APPROXY 
+#define APPROXY 0.01f
+#endif 
+
+struct QEMFace;
 // ─────────────────────────────────────────────
 // QEM 정점 (Vertex)
 // ─────────────────────────────────────────────
@@ -21,6 +25,14 @@ struct QEMVertex
 
     QEMVertex(float x, float y, float z)
         : position{ x, y, z, 1.0f }, Q{} {}
+
+    bool operator==(QEMVertex& other) const
+    {
+        return (this->position.x - other.position.x < APPROXY &&
+                this->position.y - other.position.y < APPROXY &&
+                this->position.z - other.position.z < APPROXY);
+    }
+
 };
 
 // ─────────────────────────────────────────────
@@ -30,12 +42,22 @@ struct QEMFace
 {
     QEMVertex* indices[3];                      // 세 정점
     DirectX::XMFLOAT4 plane;                  // 평면 방정식 (a, b, c, d) → Kp 계산용    
+    //DirectX::XMFLOAT4 normal;
 
     QEMFace()
         : indices{ 0, 0, 0 }, plane{ 0, 0, 0, 0 } {}
 
     QEMFace(QEMVertex* i0, QEMVertex* i1, QEMVertex* i2)
         : indices{ i0, i1, i2 }, plane{ 0, 0, 0, 0 } {}
+
+    bool operator==(QEMFace& other) const
+    {
+        return 
+            (this->indices[0] == other.indices[0] && 
+            this->indices[1] == other.indices[1] &&
+            this->indices[2] == other.indices[2] );
+    }
+
 };
 
 // ─────────────────────────────────────────────
@@ -43,7 +65,7 @@ struct QEMFace
 // ─────────────────────────────────────────────
 struct QEMPair
 {
-    QEMVertex* v1, v2;                          // 두 정점
+    QEMVertex* v1, * v2;                          // 두 정점
     DirectX::XMFLOAT4 optimalPos;             // 최적 축약 위치
     double cost;                              // v^T * (Q1+Q2) * v
 

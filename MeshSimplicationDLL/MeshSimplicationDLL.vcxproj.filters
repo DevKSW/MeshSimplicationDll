@@ -33,42 +33,45 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\framework.h">
-      <Filter>헤더 파일\Core</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Parser\ModelParser.h">
+    <ClInclude Include="dllmain.h">
+      <Filter>헤더 파일\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>헤더 파일\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelParser.h">
       <Filter>헤더 파일\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="Parser\Assimps.h">
+    <ClInclude Include="Assimps.h">
       <Filter>헤더 파일\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh\MeshSimplicator.h">
+    <ClInclude Include="CustomStructures.h">
       <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh\MeshStroreBox.h">
+    <ClInclude Include="MeshSimplicator.h">
       <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh\CustomStructures.h">
+    <ClInclude Include="MeshStoreBox.h">
       <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\dllmain.cpp">
-      <Filter>소스 파일\Core</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Parser\ModelParser.cpp">
+    <ClCompile Include="dllmain.cpp">
+      <Filter>소스 파일\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelParser.cpp">
       <Filter>소스 파일\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh\MeshSimplicator.cpp">
+    <ClCompile Include="MeshSimplicator.cpp">
       <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh\MeshStroreBox.cpp">
+    <ClCompile Include="MeshStoreBox.cpp">
       <Filter>소스 파일\Mesh</Filter>
     </ClCompile>
   </ItemGroup>

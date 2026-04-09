@@ -10,11 +10,15 @@
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
 #include <string>
+#include <unordered_map>
 
 //Assimp Librays
 #include <assimp/Importer.hpp>      // C++ 인터페이스
 #include <assimp/scene.h>           // aiScene 구조체
 #include <assimp/postprocess.h>     // 사후 처리 플래그
+#include <assimp/Exporter.hpp>      // Export 기능
+
+int min(const int& a, const int& b);
 
 
 #endif //PCH_H

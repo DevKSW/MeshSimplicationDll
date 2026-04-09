@@ -1,26 +1,35 @@
-#pragma once
-#include "../Mesh/CustomStructures.h"
+﻿#pragma once
+#include "CustomStructures.h"
 #include <vector>
 
 /// 파싱된 메시 데이터를 보관하고 QEM에 필요한 자료구조를 제공
 class MeshStoreBox
 {
 private:
-    std::vector<QEMVertex> vertices;
-    std::vector<QEMFace>   faces;
+    std::vector<QEMVertex*> vertices;
+    std::vector<QEMFace*>   faces;
 
 public:
     void AddVertex(const QEMVertex& vertex);
     void AddFace(const QEMFace& face);  
-    
-    /// 파싱된 정점/면 데이터로부터 인접 정보와 평면 방정식을 구축
-    void BuildAdjacency();
+
+    QEMVertex* FindVertex(QEMVertex vertex);
+    QEMFace* FindFace(QEMFace face);
 
     /// 모든 데이터 초기화
     void Clear();
 
     uint32_t GetVertexCount() const { return static_cast<uint32_t>(vertices.size()); }
     uint32_t GetFaceCount()   const { return static_cast<uint32_t>(faces.size()); }
+
+    const std::vector<QEMVertex*>& GetVertices() const { return vertices; }
+    const std::vector<QEMFace*>& GetFaces() const { return faces; }
+
+    void InitElements();
+    void ComputePlanes();
+
+
+    ~MeshStoreBox();
 
 private:
     /// 삼각형 세 정점으로부터 평면 방정식 (a, b, c, d) 계산
