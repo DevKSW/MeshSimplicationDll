@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "CustomStructures.h"
 #include <vector>
 
@@ -9,12 +9,18 @@ private:
     std::vector<QEMVertex*> vertices;
     std::vector<QEMFace*>   faces;
 
+    std::vector<aiMaterial*> materials;
+
 public:
-    void AddVertex(const QEMVertex& vertex);
+
+
+    QEMVertex& AddVertex(const QEMVertex& vertex);
     void AddFace(const QEMFace& face);  
+    void AddMaterial(aiMaterial* mat);
 
     QEMVertex* FindVertex(QEMVertex vertex);
     QEMFace* FindFace(QEMFace face);
+    QEMVertex* GetVertexAt(unsigned int index) { return vertices[index]; }    
 
     /// 모든 데이터 초기화
     void Clear();
@@ -24,14 +30,17 @@ public:
 
     const std::vector<QEMVertex*>& GetVertices() const { return vertices; }
     const std::vector<QEMFace*>& GetFaces() const { return faces; }
+    const std::vector<aiMaterial*>& GetMaterials() const { return materials; }
 
     void InitElements();
     void ComputePlanes();
-
+    void RemoveDeletedElements();
+    int WeldVerticesByPosition(float epsilon);
 
     ~MeshStoreBox();
 
 private:
     /// 삼각형 세 정점으로부터 평면 방정식 (a, b, c, d) 계산
-    DirectX::XMFLOAT4 ComputePlane(const QEMVertex& v0, const QEMVertex& v1, const QEMVertex& v2);
+    DirectX::XMFLOAT4 ComputePlane(const QEMVertex* v0, const QEMVertex* v1, const QEMVertex* v2);    
+    
 };

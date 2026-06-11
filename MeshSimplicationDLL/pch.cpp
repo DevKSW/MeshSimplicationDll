@@ -10,3 +10,10 @@ int min(const int& a, const int& b)
 		return a < b ? a : b;
 	}
 }
+
+double min(const double& a, const double& b)
+{
+	{
+		return a < b ? a : b;
+	}
+}

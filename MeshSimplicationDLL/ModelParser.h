@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "pch.h"
+#include "CustomStructures.h"
 
 class MeshStoreBox;
 
@@ -12,5 +13,5 @@ public:
 	MeshStoreBox* LoadModel(const std::string& path);
 	
 	/// MeshStoreBox 데이터를 FBX(기타 포맷)로 내보내기
-	bool ExportModel(MeshStoreBox* storeBox, const std::string& path);
+	bool ExportModel(MeshStoreBox* storeBox, const std::string& path,CoordinateFlag coordinate = CoordinateFlag::Source , const std::string& filePath = "");
 };

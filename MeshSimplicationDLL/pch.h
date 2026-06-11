@@ -18,7 +18,8 @@
 #include <assimp/postprocess.h>     // 사후 처리 플래그
 #include <assimp/Exporter.hpp>      // Export 기능
 
-int min(const int& a, const int& b);
 
+int min(const int& a, const int& b);
+double min(const double& a, const double& b);
 
 #endif //PCH_H

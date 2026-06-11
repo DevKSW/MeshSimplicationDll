@@ -42,12 +42,6 @@
     <ClInclude Include="framework.h">
       <Filter>헤더 파일\Core</Filter>
     </ClInclude>
-    <ClInclude Include="ModelParser.h">
-      <Filter>헤더 파일\Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="Assimps.h">
-      <Filter>헤더 파일\Parser</Filter>
-    </ClInclude>
     <ClInclude Include="CustomStructures.h">
       <Filter>헤더 파일\Mesh</Filter>
     </ClInclude>
@@ -56,6 +50,15 @@
     </ClInclude>
     <ClInclude Include="MeshStoreBox.h">
       <Filter>헤더 파일\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Assimps.h">
+      <Filter>헤더 파일\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelParser.h">
+      <Filter>헤더 파일\Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +76,9 @@
     </ClCompile>
     <ClCompile Include="MeshStoreBox.cpp">
       <Filter>소스 파일\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
