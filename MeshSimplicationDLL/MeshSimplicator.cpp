@@ -227,46 +227,8 @@ void MeshSimplicator::Simplicate()
 				XMStoreFloat4x4(&targetPair.v1->Q, q1 + q2);
 
 
-				// 1. Ratio 연산을 반복문 밖으로 분리 (한 번만 계산)				
-				DirectX::XMFLOAT3 edge = DirectX::XMFLOAT3(
-					originPosition.x - targetPair.v2->position.x,
-					originPosition.y - targetPair.v2->position.y,
-					originPosition.z - targetPair.v2->position.z
-				);
-				
-				DirectX::XMFLOAT3 vecD = DirectX::XMFLOAT3(
-					targetPair.v1->position.x - targetPair.v2->position.x,
-					targetPair.v1->position.y - targetPair.v2->position.y,
-					targetPair.v1->position.z - targetPair.v2->position.z
-				);
-
-
-				DirectX::XMVECTOR vEdge = DirectX::XMLoadFloat3(&edge);
-				DirectX::XMVECTOR vD = DirectX::XMLoadFloat3(&vecD);
-
-				float resultDE, resultEE;
-				DirectX::XMStoreFloat(&resultDE, DirectX::XMVector3Dot(vD, vEdge));
-				DirectX::XMStoreFloat(&resultEE, DirectX::XMVector3Dot(vEdge, vEdge));
-
-				// resultEE가 0인 경우(분모 0) 방어 코드 추가
-				float ratio = (resultEE > 1e-6f) ? (resultDE / resultEE) : 0.0f;
-				if (ratio > 1.0f) ratio = 1.0f;
-				else if (ratio < 0.0f) ratio = 0.0f;
-
-
-				// 2. Shared Face에서 v2와 v1의 UV 매핑 정보 사전 추출 (Pass 1)
-				struct UVPair { DirectX::XMFLOAT2 uv2; DirectX::XMFLOAT2 uv1; };
-				// 채널 번호(int)를 키로 하여 매핑된 UV 쌍들을 저장
-				std::unordered_map<int, std::vector<UVPair>> sharedUVMap;
-
-
-
-
-
-				// Iterator 무효화(Invalidation) 방지를 위해 복사본으로 순회
 				auto facesCopy = targetPair.v2->adjacentFaces;
 
-
 				for (auto t : facesCopy)
 				{
 					int idx1 = -1, idx2 = -1;
@@ -275,30 +237,7 @@ void MeshSimplicator::Simplicate()
 						if (t->indices[k] == targetPair.v2) idx2 = k;
 					}
 
-					// 두 정점을 모두 포함하는 Shared Face인 경우 UV 정보 수집
-					if (idx1 != -1 && idx2 != -1) {
-						for (auto iter = t->uvs[idx2].begin(); iter != t->uvs[idx2].end(); iter++) {
-							int ch = iter->first;
-							// v1도 동일한 채널을 가지고 있다면 매핑 정보 저장
-							if (t->uvs[idx1].find(ch) != t->uvs[idx1].end()) {
-								UVPair pair;
-								pair.uv2 = DirectX::XMFLOAT2(iter->second.u, iter->second.v);
-								pair.uv1 = DirectX::XMFLOAT2(t->uvs[idx1][ch].u, t->uvs[idx1][ch].v);
-								sharedUVMap[ch].push_back(pair);
-							}
-						}
-					}
-				}
-
-				for (auto t : facesCopy)
-				{
-					int idx1 = -1, idx2 = -1;
-					for (int k = 0; k < 3; ++k) {
-						if (t->indices[k] == targetPair.v1) idx1 = k;
-						if (t->indices[k] == targetPair.v2) idx2 = k;
-					}
-
-					// Shared Face는 여기서 메모리/관계 정리
+					// Shared Face는 여기서 메모리/관계 정리 (파괴되는 면)
 					if (idx1 != -1 && idx2 != -1)
 					{
 						for (auto v : t->indices) {
@@ -308,61 +247,75 @@ void MeshSimplicator::Simplicate()
 						continue;
 					}
 
+					// 살아남는 면(Surviving Face)에 대해 무게중심 좌표계(Barycentric) UV 보간
+					// t에는 v2가 포함되어 있고 v1은 없는 상태입니다.
+					if (idx2 != -1)
+					{
+						using namespace DirectX;
 
+						// 1. 삼각형의 원본 세 정점 3D 위치 (교체되기 전)
+						XMVECTOR A = XMLoadFloat4(&t->indices[0]->position);
+						XMVECTOR B = XMLoadFloat4(&t->indices[1]->position);
+						XMVECTOR C = XMLoadFloat4(&t->indices[2]->position);
+						XMVECTOR P = XMLoadFloat4(&targetPair.optimalPos); // 병합될 새로운 3D 위치
 
-					// UV 보간 
-					
-					for (int i = 0; i < 3; i++) {
-						if (t->indices[i] == targetPair.v2)
+						// 2. 기저 벡터 및 내적 계산
+						XMVECTOR v0 = XMVectorSubtract(B, A);
+						XMVECTOR v1 = XMVectorSubtract(C, A);
+						XMVECTOR v2 = XMVectorSubtract(P, A);
+
+						float d00, d01, d11, d20, d21;
+						XMStoreFloat(&d00, XMVector3Dot(v0, v0));
+						XMStoreFloat(&d01, XMVector3Dot(v0, v1));
+						XMStoreFloat(&d11, XMVector3Dot(v1, v1));
+						XMStoreFloat(&d20, XMVector3Dot(v2, v0));
+						XMStoreFloat(&d21, XMVector3Dot(v2, v1));
+
+						float denom = d00 * d11 - d01 * d01;
+						float w0 = 0.0f, w1 = 0.0f, w2 = 0.0f;
+
+						// 3. 가중치 계산 (분모 0에 수렴하는 Degenerate 방어)
+						if (std::abs(denom) > 1e-6f)
 						{
-							for (auto iter = t->uvs[i].begin(); iter != t->uvs[i].end(); iter++)
-							{
-								int ch = iter->first;
-								UVElement& uvElem = iter->second;
-								DirectX::XMFLOAT2 currentUV(uvElem.u, uvElem.v);
-								DirectX::XMFLOAT2 targetUV = currentUV; // 매핑을 못 찾으면 기존 v2 UV 유지
-
-								// 사전에 만들어둔 sharedUVMap에서 O(1) 수준으로 목적지 UV 탐색
-								if (sharedUVMap.find(ch) != sharedUVMap.end()) {
-									float minDist = 3.402823466e+38f; // Float Max
-									DirectX::XMFLOAT2 nearestUV = currentUV; // fallback 초기값
-									bool foundInThreshold = false;
-
-									for (const auto& pair : sharedUVMap[ch]) {
-										float dist = (currentUV.x - pair.uv2.x) * (currentUV.x - pair.uv2.x) +
-											(currentUV.y - pair.uv2.y) * (currentUV.y - pair.uv2.y);
-
-										if (dist < minDist) {
-											minDist = dist;
-											nearestUV = pair.uv1; // 오차 무관하게 가장 가까운 후보 추적
-										}
-
-										// 허용 오차(1e-2f) 이내이면 즉시 확정
-										if (dist < 1e-2f) {
-											targetUV = pair.uv1;
-											foundInThreshold = true;
-										}
-									}
-
-									// 오차 내 매핑이 없으면 가장 가까운 후보를 fallback으로 사용
-									if (!foundInThreshold)
-										targetUV = nearestUV;
-								}
-
-								// 선형 보간 (Lerp): currentUV -> targetUV 방향으로 ratio만큼 이동
-								uvElem.u = currentUV.x + ratio * (targetUV.x - currentUV.x);
-								uvElem.v = currentUV.y + ratio * (targetUV.y - currentUV.y);
-							}
-
-							t->indices[i] = targetPair.v1;
+							w1 = (d11 * d20 - d01 * d21) / denom;
+							w2 = (d00 * d21 - d01 * d20) / denom;
+							w0 = 1.0f - w1 - w2;
 						}
+						else
+						{
+							// 면적이 0에 가까우면 가중치 보간을 포기하고 기존 v2의 UV를 그대로 유지
+							if (idx2 == 0) w0 = 1.0f;
+							else if (idx2 == 1) w1 = 1.0f;
+							else w2 = 1.0f;
+						}
+
+						// 4. v2 코너의 모든 UV 채널 갱신
+						for (auto iter = t->uvs[idx2].begin(); iter != t->uvs[idx2].end(); iter++)
+						{
+							int ch = iter->first;
+
+							// 원본 면의 A, B, C 코너에서 해당 채널의 UV 획득 
+							// (만약 채널 매핑이 누락된 비정상 코너라면 현재 코너의 UV로 Fallback)
+							auto getUV = [&](int cornerIdx) -> DirectX::XMFLOAT2 {
+								auto it = t->uvs[cornerIdx].find(ch);
+								if (it != t->uvs[cornerIdx].end())
+									return DirectX::XMFLOAT2(it->second.u, it->second.v);
+								return DirectX::XMFLOAT2(iter->second.u, iter->second.v);
+								};
+
+							DirectX::XMFLOAT2 uvA = getUV(0);
+							DirectX::XMFLOAT2 uvB = getUV(1);
+							DirectX::XMFLOAT2 uvC = getUV(2);
+
+							// 무게중심 가중치를 적용한 정밀 3D-to-2D 보간
+							iter->second.u = w0 * uvA.x + w1 * uvB.x + w2 * uvC.x;
+							iter->second.v = w0 * uvA.y + w1 * uvB.y + w2 * uvC.y;
+						}
+
+						// 보간이 끝났으므로 실제 정점 포인터를 v2에서 v1으로 교체
+						t->indices[idx2] = targetPair.v1;
 					}
 
-
-
-
-					//
-					
 					// 축약 후 중복이 생기면 degenerate → 파괴 처리
 					if (t->indices[0] == t->indices[1] ||
 						t->indices[1] == t->indices[2] ||
