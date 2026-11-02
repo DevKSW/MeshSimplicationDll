@@ -1,6 +1,7 @@
 #pragma once
 #include "CustomStructures.h"
 #include <vector>
+#include <assimp/scene.h>
 
 /// 파싱된 메시 데이터를 보관하고 QEM에 필요한 자료구조를 제공
 class MeshStoreBox
@@ -10,6 +11,12 @@ private:
     std::vector<QEMFace*>   faces;
 
     std::vector<aiMaterial*> materials;
+    std::vector<aiTexture*> textures;
+
+    std::vector<aiAnimation*> animations;
+
+    std::vector<Skeleton*> skeletons;
+    std::vector<MeshSkin*> meshSkins;
 
 public:
 
@@ -17,6 +24,9 @@ public:
     QEMVertex& AddVertex(const QEMVertex& vertex);
     void AddFace(const QEMFace& face);  
     void AddMaterial(aiMaterial* mat);
+    void AddTexture(const aiTexture* texture);
+    void AddAnimation(const aiAnimation* animaton);
+    void AddSkeleton(const aiSkeleton* skeleton);
 
     QEMVertex* FindVertex(QEMVertex vertex);
     QEMFace* FindFace(QEMFace face);
@@ -31,6 +41,8 @@ public:
     const std::vector<QEMVertex*>& GetVertices() const { return vertices; }
     const std::vector<QEMFace*>& GetFaces() const { return faces; }
     const std::vector<aiMaterial*>& GetMaterials() const { return materials; }
+    const std::vector<aiTexture*>& GetTextures() const { return textures; }
+    const std::vector<aiAnimation*>& GetAnimations() const { return animations; }
 
     void InitElements();
     void ComputePlanes();

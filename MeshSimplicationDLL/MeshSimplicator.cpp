@@ -7,6 +7,50 @@
 #include <windows.h>
 #include <unordered_map>
 
+namespace {
+// Interpolate within each original face so welded hard edges stay discontinuous.
+void UpdateCollapseNormals(QEMVertex* v1, QEMVertex* v2, const DirectX::XMFLOAT4& position)
+{
+    using namespace DirectX;
+    auto affected = v1->adjacentFaces;
+    affected.insert(v2->adjacentFaces.begin(), v2->adjacentFaces.end());
+    for (auto* face : affected) {
+        if (face->isDeleted) continue;
+        int corner = -1;
+        int movedCorners = 0;
+        for (int i = 0; i < 3; ++i) {
+            if (face->indices[i] == v1 || face->indices[i] == v2) {
+                corner = i;
+                ++movedCorners;
+            }
+        }
+        if (movedCorners != 1) continue; // Shared faces are removed by the collapse.
+
+        const XMVECTOR a = XMLoadFloat4(&face->indices[0]->position);
+        const XMVECTOR ab = XMVectorSubtract(XMLoadFloat4(&face->indices[1]->position), a);
+        const XMVECTOR ac = XMVectorSubtract(XMLoadFloat4(&face->indices[2]->position), a);
+        const XMVECTOR ap = XMVectorSubtract(XMLoadFloat4(&position), a);
+        const float d00 = XMVectorGetX(XMVector3Dot(ab, ab));
+        const float d01 = XMVectorGetX(XMVector3Dot(ab, ac));
+        const float d11 = XMVectorGetX(XMVector3Dot(ac, ac));
+        const float d20 = XMVectorGetX(XMVector3Dot(ap, ab));
+        const float d21 = XMVectorGetX(XMVector3Dot(ap, ac));
+        const float denominator = d00 * d11 - d01 * d01;
+        if (!std::isfinite(denominator) || denominator <= 1e-6f * d00 * d11) continue;
+
+        const float w1 = (d11 * d20 - d01 * d21) / denominator;
+        const float w2 = (d00 * d21 - d01 * d20) / denominator;
+        XMVECTOR normal = XMVectorAdd(
+            XMVectorScale(XMLoadFloat3(&face->normals[0]), 1.0f - w1 - w2),
+            XMVectorAdd(XMVectorScale(XMLoadFloat3(&face->normals[1]), w1),
+                XMVectorScale(XMLoadFloat3(&face->normals[2]), w2)));
+        const float lengthSquared = XMVectorGetX(XMVector3LengthSq(normal));
+        if (std::isfinite(lengthSquared) && lengthSquared > 1e-20f)
+            XMStoreFloat3(&face->normals[corner], XMVector3Normalize(normal));
+    }
+}
+}
+
 MeshSimplicator::MeshSimplicator()
 {
 	this->parser = new ModelParser();
@@ -186,7 +230,7 @@ void MeshSimplicator::Simplicate()
 		
 		for (int level = 0; level < simplicateLevel; ++level)
 		{	
-			int pairSize = this->pairsQueue.size();
+			int pairSize = this->storeBox->GetVertexCount();//this->pairsQueue.size(); 			
 			int cntOfCollapse = (pairSize / 100) * this->simplicateRate;
             int targetAmount = cntOfCollapse;
             int collapsedCount = 0;
@@ -217,6 +261,8 @@ void MeshSimplicator::Simplicate()
 					continue;  
 				}
 				targetPair.optimalPos = safePos;
+
+                UpdateCollapseNormals(targetPair.v1, targetPair.v2, safePos);
 
 				DirectX::XMFLOAT4 originPosition = targetPair.v1->position;
 				targetPair.v1->position = targetPair.optimalPos;				

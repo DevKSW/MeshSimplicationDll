@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "MeshStoreBox.h"
 #include <algorithm>
+#include <assimp/SceneCombiner.h>
 #include "Logger.h"
 using namespace DirectX;
 
@@ -22,24 +23,6 @@ void MeshStoreBox::AddMaterial(aiMaterial* mat)
     aiMaterial* newMat = new aiMaterial();
     aiMaterial::CopyPropertyList(newMat, mat);
 
-    // 임베디드 텍스처 참조 검사 + 정화
-    aiString texPath;
-    for (aiTextureType type : {aiTextureType_DIFFUSE, aiTextureType_BASE_COLOR,
-        aiTextureType_NORMALS, aiTextureType_SPECULAR}) 
-    {
-        if (newMat->GetTexture(type, 0, &texPath) == AI_SUCCESS) 
-        {
-            std::string p = texPath.C_Str();
-            if (!p.empty() && p[0] == '*') 
-            {
-                // 임베디드 참조 → 빈 경로로 교체 (또는 별도 파일로 추출 후 경로 변경)
-                LOG_WARN("Material has embedded texture ref '{}', clearing", p);
-                aiString empty;
-                newMat->AddProperty(&empty, _AI_MATKEY_TEXTURE_BASE, type, 0);
-            }
-        }
-    }
-
     // 머티리얼 이름 누락 방지
     aiString matName;
     if (newMat->Get(AI_MATKEY_NAME, matName) != AI_SUCCESS) {
@@ -49,6 +32,39 @@ void MeshStoreBox::AddMaterial(aiMaterial* mat)
     }
 
     materials.push_back(newMat);
+}
+
+void MeshStoreBox::AddTexture(const aiTexture* texture)
+{
+    aiTexture* copy = nullptr;
+    Assimp::SceneCombiner::Copy(&copy, texture);
+    textures.push_back(copy);
+}
+
+void MeshStoreBox::AddAnimation(const aiAnimation* animation)
+{
+    aiAnimation* copy = nullptr;
+    Assimp::SceneCombiner::Copy(&copy, animation);
+    animations.push_back(copy);
+}
+
+void MeshStoreBox::AddSkeleton(const aiSkeleton* aiSkeleton)
+{
+    Skeleton* skeletonData = new Skeleton;
+    skeletonData->name = std::string(aiSkeleton->mName.C_Str());
+    
+    
+
+    for (size_t i = 0; i < aiSkeleton->mNumBones; i++)
+    {
+        SkeletonNode node;
+        auto bone = aiSkeleton->mBones[i];
+        node.defaultLocalTransform = bone->mOffsetMatrix;
+        node.name = bone->mNode->mName.C_Str();                
+
+
+    }
+    
 }
 
 
@@ -101,10 +117,13 @@ void MeshStoreBox::Clear()
         ptr = nullptr;
     }
     for (auto mat : materials) delete mat;
+    for (auto texture : textures) delete texture;
 
     vertices.clear();
     faces.clear();
     materials.clear();
+    textures.clear();
+    animations.clear();
 }
 
 void MeshStoreBox::InitElements()
@@ -238,7 +257,7 @@ int MeshStoreBox::WeldVerticesByPosition(float epsilon)
     std::unordered_map<WeldKey, std::vector<QEMVertex*>, WeldKeyHash> grid;
     grid.reserve(vertices.size() * 2);
     for (auto* v : vertices) {
-        if (!v) continue;            // null 방어
+        if (!v) continue;            
         if (v->isDeleted) continue;
         grid[quantize(v->position)].push_back(v);
     }
@@ -253,7 +272,7 @@ int MeshStoreBox::WeldVerticesByPosition(float epsilon)
         if (v->isDeleted) continue;
         if (remap.count(v)) continue;
 
-        remap[v] = v;  // 자기 자신을 survivor로 등록 (절대 누락 안 됨)
+        remap[v] = v;  // 자기 자신을 survivor로 등록 
 
         WeldKey base = quantize(v->position);
         XMVECTOR pv = XMLoadFloat4(&v->position);

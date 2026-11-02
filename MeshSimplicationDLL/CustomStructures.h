@@ -1,8 +1,10 @@
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
+#include <map>
 #include <unordered_set>
 #include <cmath>
+#include <string>
 
 #ifndef APPROXY 
 #define APPROXY 0.01f
@@ -67,8 +69,9 @@ struct FaceMeta
 {
     int subMeshID;
     int materialIndex;
+    int skinIndex;
 
-    FaceMeta(int meshID = 0, int bone = 0 , int matIdx = 0) : subMeshID(meshID), materialIndex(matIdx) {}
+    FaceMeta(int meshID = 0, int bone = 0, int matIdx = 0, int skinIdx = 0) : subMeshID(meshID), materialIndex(matIdx), skinIndex(skinIdx) {}
 
 };
 
@@ -82,6 +85,8 @@ struct QEMFace
     //DirectX::XMFLOAT4 normal;
     
     std::map<int, UVElement> uvs[3];
+    // Corner normals survive position welding without smoothing hard edges.
+    DirectX::XMFLOAT3 normals[3]{};
 
     FaceMeta metaData;
 
@@ -122,6 +127,53 @@ struct QEMPair
     }
 };
 
+
+//=============================================================================
+// Bone Infos 
+//=============================================================================
+
+struct SkeletonNode 
+{
+    std::string name;
+
+    int32_t parentIndex = -1;
+    
+    aiMatrix4x4 defaultLocalTransform;
+};
+
+
+struct Skeleton 
+{
+    std::string name;
+    std::vector<SkeletonNode> nodes;
+};
+
+struct JointBinding
+{
+    uint32_t nodeIndex;
+    aiMatrix4x4 inverseBind;
+};
+
+struct BoneWeight 
+{
+    uint32_t jointIndex;
+    float weight;
+};
+
+struct MeshSkin
+{
+    uint32_t skeletonIndex;
+
+    std::vector<JointBinding> joints;
+
+    // 정점 v의 모든 bone weight
+    std::vector<std::vector<BoneWeight>> vertexWeights;
+
+};
+
+
+//
+
 struct WeldKey {
     int32_t x, y, z;
     bool operator==(const WeldKey& o) const noexcept {
@@ -136,3 +188,5 @@ struct WeldKeyHash {
             (size_t)(k.z * 83492791u);
     }
 };
+
+
